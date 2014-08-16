@@ -4,7 +4,7 @@ require 'shipment/mooring'
 module Shipment
 
   class CLI < Thor
-    desc "lash", "setup Shipment with your GitHub and DigitalOcean credentials"
+    desc "lash", "Setup Shipment with your GitHub and DigitalOcean credentials"
     long_desc <<-LONGDESC
       `ship lash` will collect your GitHub and DigitalOcean credentials.
     LONGDESC
@@ -12,7 +12,7 @@ module Shipment
       Shipment::Mooring.lash
     end
 
-    desc "this", "prepare your application for deployment"
+    desc "this", "Prepare your application for deployment"
     long_desc <<-LONGDESC
     `ship this` will setup all necessary files and prepare a remote server for
     deployment.
@@ -27,6 +27,11 @@ module Shipment
       Shipment::Rigging.rig
     end
 
+    desc "out", "Deploy your application"
+    long_desc <<-LONGDESC
+    `ship out` will deploy your application's master branch to your DigitalOcean 
+    server.
+    LONGDESC
     def out
       Shipment::Slip.cast_off
     end
