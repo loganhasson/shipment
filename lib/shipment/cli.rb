@@ -11,12 +11,23 @@ module Shipment
       Shipment::Mooring.lash
     end
 
-    def this
+    desc "this", "prepare your application for deployment"
+    long_desc <<-LONGDESC
+    `ship this` will setup all necessary files and prepare a remote server for
+    deployment.
 
+    This process includes adding the `mina` gem to your Gemfile, creating a new 
+    `deploy.rb` file, altering your `database.yml` file for use on the remote 
+    server, and ensuring that all necessary SSH keys are in place.
+
+    Alternate usage: `ship .`
+    LONGDESC
+    def this
+      Shipment::Rigging.rig
     end
 
     def out
-
+      Shipment::Slip.cast_off
     end
   end
 
