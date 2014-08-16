@@ -6,15 +6,15 @@ require 'highline/import'
 
 module Shipment
 
-  class Setup
+  class Mooring
     attr_accessor :gh_username, :gh_password, :gh_token,
                   :do_client_id, :do_api_key,
                   :ssh_key, :private_key, :public_key
-    def self.run
-      new.run
+    def self.lash
+      new.lash
     end
 
-    def run
+    def lash
       write_gh_creds
       write_do_creds
       do_ssh_success = setup_do_ssh_key

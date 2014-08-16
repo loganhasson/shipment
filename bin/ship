@@ -1,1 +1,9 @@
 #!/usr/bin/env ruby
+
+require 'shipment/cli'
+
+if ARGV[0] == '.'
+  ARGV[0] = "this"
+end
+
+Shipment::CLI.start(ARGV)
