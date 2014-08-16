@@ -26,5 +26,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "net-ssh"
   spec.add_runtime_dependency "digitalocean"
   spec.add_runtime_dependency "octokit"
+  spec.add_runtime_dependency "netrc"
 end
 
