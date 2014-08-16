@@ -1,3 +1,4 @@
+require 'thor'
 require 'shipment/mooring'
 
 module Shipment
