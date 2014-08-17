@@ -1,3 +1,4 @@
+require 'git'
 require 'securerandom'
 require 'shipment/server/ssh_client'
 
@@ -28,6 +29,15 @@ module Shipment
         update_db_info
         puts "-----> ".green + "Adding .shipment file to .gitignore..."
         add_shipment_to_gitignore
+        puts "-----> ".green + "Committing and pushing changes..."
+        commit_and_push
+      end
+
+      def commit_and_push
+        git = Git.open(FileUtils.pwd)
+        git.add(all: true)
+        git.commit("Setup for deployment with shipment")
+        git.push(git.remote("origin"))
       end
 
       def add_shipment_to_gitignore
