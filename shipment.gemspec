@@ -30,5 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "thor"
   spec.add_runtime_dependency "highline"
   spec.add_runtime_dependency "sshkey"
+  spec.add_runtime_dependency "git"
 end
 
