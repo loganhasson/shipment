@@ -140,7 +140,7 @@ module Shipment
       Digitalocean.api_key = do_api_key
 
       response = Digitalocean::SshKey.create({
-        name: 'Shipment',
+        name: 'shipment',
         ssh_pub_key: CGI::escape(public_key)
       })
 
