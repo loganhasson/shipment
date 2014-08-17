@@ -18,16 +18,21 @@ module Shipment
 
       def setup
         add_to_known_hosts
+        pull_ruby_image
       end
 
       def add_to_known_hosts
-       `/usr/bin/expect <<EOD
+        puts "Adding droplet to known hosts..."
+        `/usr/bin/expect <<EOD
         spawn ssh root@#{ip_address}
         expect -re "(continue)"
         send "yes\n"
         send "exit\n"
         expect eof
         EOD`
+      end
+
+      def pull_ruby_image
       end
       # 3. SSH into droplet and:
       #   a. Pull loganhasson/ruby_image

@@ -42,12 +42,14 @@ module Shipment
       end
 
       def store_droplet_data
+        puts "Storing droplet data..."
         File.open("#{ENV['HOME']}/.shipment", "a") do |f|
           f.write "#{droplet.id} : #{repo_name} : #{ip_address}\n"
         end
       end
 
       def update_ssh_config
+        puts "Setting up SSH config..."
         File.open("#{ENV['HOME']}/.ssh/config", "a") do |f|
           f.write <<-SSHCONFIG.gsub(/^ {10}/,'')
 
