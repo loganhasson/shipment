@@ -1,6 +1,8 @@
 require 'digitalocean'
 require 'netrc'
+require 'colorize'
 require 'shipment/server/ssh_client'
+require 'shipment/project/customizer'
 
 module Shipment
   module Server
@@ -24,6 +26,7 @@ module Shipment
         create_droplet
         store_droplet_data
         update_ssh_config
+        Shipment::Project::Customizer.customize
         Shipment::Server::SSHClient.setup(
           repo: repo,
           ip_address: ip_address
@@ -31,7 +34,7 @@ module Shipment
       end
 
       def create_droplet
-        print "Creating Droplet: #{repo_name}"
+        print "-----> ".green + "Creating Droplet: #{repo_name}"
         self.droplet = Digitalocean::Droplet.create({
           name: repo_name,
           size_id: get_size_id,
@@ -43,19 +46,26 @@ module Shipment
       end
 
       def store_droplet_data
-        puts "Storing droplet data..."
+        puts "-----> ".green + "Storing droplet data..."
         File.open("#{ENV['HOME']}/.shipment", "a") do |f|
           f.write "#{droplet.id} : #{repo_name} : #{ip_address}\n"
         end
 
-        puts "Creating .shipment file..."
+        puts "-----> ".green + "Creating .shipment file..."
+        yaml = {
+          id: droplet.id,
+          ip_address: ip_address,
+          name: repo_name,
+          user: repo_user,
+          url: repo_url
+        }.to_yaml
         File.open(File.join(FileUtils.pwd, ".shipment"), "w+") do |f|
-          f.write "#{droplet.id} : #{repo_name} : #{ip_address}"
+          f.write yaml
         end
       end
 
       def update_ssh_config
-        puts "Setting up SSH config..."
+        puts "-----> ".green + "Setting up SSH config..."
         File.open("#{ENV['HOME']}/.ssh/config", "a") do |f|
           f.write <<-SSHCONFIG.gsub(/^ {10}/,'')
 
@@ -102,7 +112,7 @@ module Shipment
         end
 
         self.ip_address = get_ip_address
-        puts "Done."
+        puts "-----> ".green + "Done."
       end
     end
   end
