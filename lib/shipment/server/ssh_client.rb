@@ -33,10 +33,38 @@ module Shipment
       end
 
       def pull_ruby_image
+        puts "Adding base ruby_image container to server..."
+        run_remote_command("docker pull loganhasson/ruby_image")
+      end
+
+      def run_remote_command(command)
+        puts "----> #{command}"
+        Net::SSH.start(ip_address, 'root') do |ssh|
+          ssh.open_channel do |channel|
+            channel.exec "#{command}" do |ch, success|
+              raise "problem executing command: #{command}" unless success
+
+              ch.on_data do |c, data|
+                if !data.empty? && !(data == " ") && !(data == "\n")
+                  $stdout.print data
+                end
+              end
+
+              ch.on_extended_data do |c, type, data|
+                if !data.empty? && !(data == " ") && !(data == "\n")
+                  $stderr.print data
+                end
+              end
+
+              ch.on_close { puts "Done." }
+            end
+          end
+        end
       end
       # 3. SSH into droplet and:
-      #   a. Pull loganhasson/ruby_image
       #   b. Generate SSH key and add to github as deploy key
+      #     1. Guess this class needs the whole Repo object (username and repo name)
+      #     2. Remember to do an expect/clone thing
       #   c. Clone repo into container, bundle, remove dir
       #   d. Commit container changes
       #   e. Remove loganhasson/ruby_image
