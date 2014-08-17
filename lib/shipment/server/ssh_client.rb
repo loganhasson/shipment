@@ -1,4 +1,5 @@
 require 'net/ssh'
+require 'shipment/server/expect'
 
 module Shipment
   module Server
@@ -15,6 +16,19 @@ module Shipment
         @repo_url = repo_url
       end
 
+      def setup
+        add_to_known_hosts
+      end
+
+      def add_to_known_hosts
+       `/usr/bin/expect <<EOD
+        spawn ssh root@#{ip_address}
+        expect -re "(continue)"
+        send "yes\n"
+        send "exit\n"
+        expect eof
+        EOD`
+      end
       # 3. SSH into droplet and:
       #   a. Pull loganhasson/ruby_image
       #   b. Generate SSH key and add to github as deploy key

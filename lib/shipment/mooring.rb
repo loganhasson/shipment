@@ -124,6 +124,7 @@ module Shipment
         f.write ssh_key.private_key
       end
 
+      `chmod 0600 #{ENV['HOME']}/.ssh/shipment_rsa`
       return ssh_key.private_key
     end
 

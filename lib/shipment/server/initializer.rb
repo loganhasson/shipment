@@ -7,7 +7,7 @@ module Shipment
 
     class Initializer
       attr_reader :repo_url, :repo_name, :repo_user
-      attr_accessor :droplet
+      attr_accessor :droplet, :ip_address
 
       def self.spin_up(repo)
         new(repo).spin_up
@@ -36,7 +36,7 @@ module Shipment
           size_id: get_size_id,
           image_id: get_image_id,
           region_id: get_region_id,
-          ssh_key_id: get_ssh_key_id
+          ssh_key_ids: [get_ssh_key_id]
         }).droplet
         print_waiting
       end
@@ -51,9 +51,10 @@ module Shipment
         File.open("#{ENV['HOME']}/.ssh/config", "a") do |f|
           f.write <<-SSHCONFIG.gsub(/^ {10}/,'')
 
-          Host #{repo_name.gsub(/_|-/,'')} #{ip_address}
+          Host #{ip_address}
           Hostname #{ip_address}
           IdentityFile #{ENV['HOME']}/.ssh/shipment_rsa
+          User root
           SSHCONFIG
         end
       end
@@ -93,6 +94,7 @@ module Shipment
         end
 
         self.ip_address = get_ip_address
+        puts "Done."
       end
     end
   end
