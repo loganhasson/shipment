@@ -88,9 +88,9 @@ module Shipment
 
       def create_db_creds
         repo_info[:database] = {
-          username: SecureRandom.hex(5),
-          password: SecureRandom.hex,
-          name: SecureRandom.hex(10)
+          username: SecureRandom.hex(5).chars.unshift('s').join,
+          password: SecureRandom.hex.chars.unshift('s').join,
+          name: SecureRandom.hex(10).chars.unshift('s').join
         }
       end
     end

@@ -1,11 +1,12 @@
 require 'git'
 require 'netrc'
+require 'yaml'
 
 module Shipment
   module Project
 
     class Repo
-      attr_accessor :repo, :url, :user, :name
+      attr_accessor :repo, :url, :user, :name, :original_name
 
       def initialize
         self.repo = Git.open(FileUtils.pwd)
@@ -29,7 +30,8 @@ module Shipment
       end
 
       def get_name
-        self.name = url.match(/(?:https:\/\/|git@).*\/(.+)(?:\.git)?/)[1].gsub('.git', '')
+        self.original_name = url.match(/(?:https:\/\/|git@).*\/(.+)(?:\.git)?/)[1].gsub('.git', '')
+        self.name = url.match(/(?:https:\/\/|git@).*\/(.+)(?:\.git)?/)[1].gsub('.git', '').gsub('_','-')
       end
     end
 

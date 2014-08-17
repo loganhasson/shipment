@@ -3,6 +3,7 @@ require 'netrc'
 require 'colorize'
 require 'shipment/server/ssh_client'
 require 'shipment/project/customizer'
+require 'yaml'
 
 module Shipment
   module Server
@@ -112,7 +113,7 @@ module Shipment
         end
 
         self.ip_address = get_ip_address
-        puts "-----> ".green + "Done."
+        puts "Done."
       end
     end
   end
