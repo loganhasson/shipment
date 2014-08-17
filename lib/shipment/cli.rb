@@ -1,5 +1,8 @@
 require 'thor'
 require 'shipment/mooring'
+require 'shipment/credentials_checker'
+require 'shipment/rigging'
+require 'shipment/slip'
 
 module Shipment
 
@@ -24,6 +27,10 @@ module Shipment
     Alternate usage: `ship .`
     LONGDESC
     def this
+      if !Shipment::CredentialsChecker.verify
+        Shipment::Mooring.lash
+      end
+
       Shipment::Rigging.rig
     end
 

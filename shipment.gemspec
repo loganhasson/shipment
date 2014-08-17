@@ -31,5 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "highline"
   spec.add_runtime_dependency "sshkey"
   spec.add_runtime_dependency "git"
+  spec.add_runtime_dependency "colorize"
 end
 

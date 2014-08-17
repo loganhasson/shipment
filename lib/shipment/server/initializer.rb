@@ -6,7 +6,7 @@ module Shipment
   module Server
 
     class Initializer
-      attr_reader :repo_url, :repo_name, :repo_user
+      attr_reader :repo_url, :repo_name, :repo_user, :repo
       attr_accessor :droplet, :ip_address
 
       def self.spin_up(repo)
@@ -14,6 +14,7 @@ module Shipment
       end
 
       def initialize(repo)
+        @repo = repo
         @repo_url, @repo_name, @repo_user = repo.url, repo.name, repo.user
         netrc = Netrc.read
         Digitalocean.client_id, Digitalocean.api_key = netrc["shipment.do"]
@@ -24,8 +25,8 @@ module Shipment
         store_droplet_data
         update_ssh_config
         Shipment::Server::SSHClient.setup(
-          ip_address: ip_address,
-          repo_url: repo_url
+          repo: repo,
+          ip_address: ip_address
         )
       end
 
@@ -45,6 +46,11 @@ module Shipment
         puts "Storing droplet data..."
         File.open("#{ENV['HOME']}/.shipment", "a") do |f|
           f.write "#{droplet.id} : #{repo_name} : #{ip_address}\n"
+        end
+
+        puts "Creating .shipment file..."
+        File.open(File.join(FileUtils.pwd, ".shipment"), "w+") do |f|
+          f.write "#{droplet.id} : #{repo_name} : #{ip_address}"
         end
       end
 
