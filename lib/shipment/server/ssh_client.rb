@@ -8,7 +8,7 @@ module Shipment
 
     class SSHClient
       attr_reader :ip_address, :repo, :repo_url, :repo_name, :repo_user,
-                  :gh_username, :gh_token
+                  :gh_username, :gh_token, :db_user, :db_password, :db_name
 
       def self.setup(repo:, ip_address:)
         new(repo, ip_address).setup
@@ -18,10 +18,14 @@ module Shipment
         @gh_username, @gh_token = Netrc.read["shipment.gh"]
         @ip_address = ip_address
         @repo_url, @repo_name, @repo_user = repo.url, repo.name, repo.user
+        db_info = YAML.load(File.read('.shipment'))[:database]
+        @db_user, @db_password, @db_name = db_info[:username], db_info[:password], db_info[:name]
       end
 
       def setup
         add_to_known_hosts
+        puts "-----> ".green + "Preparing server..."
+        setup_database_container
         setup_application_container
       end
 
@@ -36,11 +40,25 @@ module Shipment
         EOD`
       end
 
+      def setup_database_container
+        puts "-----> ".green + "Setting up database container..."
+        pull_postgres_image
+        setup_database_user
+      end
+
+      def pull_postgres_image
+        puts "-----> ".green + "Pulling Postgres image (this may take a few minutes)..."
+        run_remote_command("docker pull loganhasson/postgres_image")
+      end
+
+      def setup_database_user
+        puts "-----> ".green + "Setting up database user..."
+        run_remote_command("docker run --name database loganhasson/postgres_image /bin/bash -c 'service postgresql start && psql --command \"CREATE USER #{db_user} WITH SUPERUSER PASSWORD '#{db_password}';\" && createdb -O #{db_user} #{db_name} && service postgresql stop' && docker commit database #{repo_user}/#{repo_name}_db && docker rm database && docker rmi loganhasson/postgres_image")
+      end
 
       def setup_application_container
-        puts "-----> ".green + "Preparing server..."
-        pull_ruby_image
         puts "-----> ".green + "Setting up application container..."
+        pull_ruby_image
         generate_ssh_key
         add_deploy_key
         clone_and_bundle
@@ -48,7 +66,7 @@ module Shipment
       end
 
       def pull_ruby_image
-        puts "-----> ".green + "Pulling base Ruby Image..."
+        puts "-----> ".green + "Pulling Ruby image (this may take a few minutes)..."
         run_remote_command("docker pull loganhasson/ruby_image")
       end
 
@@ -68,12 +86,14 @@ module Shipment
       end
 
       def save_docker_image
-        puts "-----> ".green + "Saving docker image and pushing to Docker hub..."
+        puts "-----> ".green + "Installing required packages (this may take a few minutes)..."
+        run_remote_command("apt-get -y update && apt-get -y upgrade && apt-get -y udpate && apt-get -y install expect", true)
+
+        puts "-----> ".green + "Saving docker images and pushing to Docker hub..."
         docker_username = ask("Docker username: ")
         docker_password = ask("Docker password: ") { |q| q.echo = false }
         docker_email = ask("Docker email address: ")
 
-        run_remote_command("apt-get -y update && apt-get -y upgrade && apt-get -y udpate && apt-get -y install expect")
         run_remote_command(<<-SETUP
         /usr/bin/expect <<EOD
         spawn docker login
@@ -87,10 +107,10 @@ module Shipment
         EOD
         SETUP
         )
-        run_remote_command("docker push #{repo_user}/#{repo_name}")
+        run_remote_command("docker push #{repo_user}/#{repo_name} && docker push #{repo_user}/#{repo_name}_db")
       end
 
-      def run_remote_command(command)
+      def run_remote_command(command, silent=false)
         puts "-----> ".green + "#{command}"
         Net::SSH.start(ip_address, 'root') do |ssh|
           ssh.open_channel do |channel|
@@ -98,8 +118,10 @@ module Shipment
               raise "problem executing command: #{command}".red unless success
 
               ch.on_data do |c, data|
-                if !data.empty? && !(data == " ") && !(data == "\n") && !data.match(/ojbects|deltas/) && !(data == ".")
-                  $stdout.puts "       #{data.strip.chomp}"
+                if !silent
+                  if !data.empty? && !(data == " ") && !(data == "\n") && !data.match(/ojbects|deltas/) && !(data == ".")
+                    $stdout.puts "       #{data.strip.chomp}"
+                  end
                 end
               end
 
