@@ -20,7 +20,13 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Possible usage:
+
+    $ ship lash # Setup credentials
+
+    $ ship this # Prepare application for deployment
+
+    $ ship out  # Deploy application
 
 ## Contributing
 
