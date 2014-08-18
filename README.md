@@ -4,7 +4,7 @@ Easy deployment using Docker
 
 ## Installation
 
-    $ gem install shipment
+    $ gem install shipment-deploy
 
 ## Usage
 
