@@ -49,26 +49,24 @@ should either remove `ship setup` command or do some checking when that
 command is run.)
 3. Need to deal with commit limit. Containers need to be exported every
    once in a while to clean up Aufs layers.
-4. Run server on port 80 (need to edit base ruby image to expose port
-   80.)
-5. Save and push application-specific docker images to user's docker
+4. Save and push application-specific docker images to user's docker
    account.
-6. Allow deploying from branches other than master.
-7. Error handler *way* better. Need to be able to handle partial
+5. Allow deploying from branches other than master.
+6. Error handle *way* better. Need to be able to handle partial
    setups/deploys.
-8. Look into creating a base image that already includes ruby and
+7. Look into creating a base image that already includes ruby and
    postgres containers. (Requires support from DigitalOcean.)
-9. Look into using `docker attach` to allow viewing logs.
-10. Better deal with committing and pushing on `ship this`. Right now,
+8. Look into using `docker attach` to allow viewing logs.
+9. Better deal with committing and pushing on `ship this`. Right now,
    rejected pushes would break everything.
-11. Create simple way to symlink credentials from an `application.yml` or
+10. Create simple way to symlink credentials from an `application.yml` or
    `.env` file.
-12. Fix messy output during setup and deploy. Also, deal with duplicate
+11. Fix messy output during setup and deploy. Also, deal with duplicate
    'Done.'s when a command is re-run.
-13. Speed everything up.
-14. Clean up the classes. Most things are doing *way* too much.
-15. Write specs!
-16. Add cleanup option
+12. Speed everything up.
+13. Clean up the classes. Most things are doing *way* too much.
+14. Write specs!
+15. Add cleanup option to remove all system config.
 
 ## Contributing
 
