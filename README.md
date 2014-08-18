@@ -69,6 +69,7 @@ command is run.)
 12. Speed everything up.
 13. Clean up the classes. Most things are doing *way* too much.
 14. Write specs!
+15. Add cleanup option
 
 ## Contributing
 
