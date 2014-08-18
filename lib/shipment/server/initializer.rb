@@ -58,7 +58,8 @@ module Shipment
           ip_address: ip_address,
           name: repo_name,
           user: repo_user,
-          url: repo_url
+          url: repo_url,
+          secret: `rake secret`.strip
         }.to_yaml
         File.open(File.join(FileUtils.pwd, ".shipment"), "w+") do |f|
           f.write yaml

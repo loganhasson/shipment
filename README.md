@@ -39,26 +39,36 @@ stdout on the server.
    server output is being improperly redirected to stderr.
 4. Currently, the only option is to set up a 2gb droplet in the NYC2
    region.
+5. Currently, the server runs on port 3000.
 
 ## Todo
 
-1. Save and push application-specific docker images to user's docker
+1. Handle SSH authorization issues when re-setting up. DigitalOcean
+   allows adding multiple keys with the same name. Need to delete
+existing key locally and remotely when running setup again. (Probably
+should either remove `ship setup` command or do some checking when that
+command is run.)
+2. Need to deal with commit limit. Containers need to be exported every
+   once in a while to clean up Aufs layers.
+3. Run server on port 80 (need to edit base ruby image to expose port
+   80.)
+4. Save and push application-specific docker images to user's docker
    account.
-2. Allow deploying from branches other than master.
-3. Error handler *way* better. Need to be able to handle partial
+5. Allow deploying from branches other than master.
+6. Error handler *way* better. Need to be able to handle partial
    setups/deploys.
-4. Look into creating a base image that already includes ruby and
+7. Look into creating a base image that already includes ruby and
    postgres containers. (Requires support from DigitalOcean.)
-5. Look into using `docker attach` to allow viewing logs.
-6. Better deal with committing and pushing on `ship this`. Right now,
+8. Look into using `docker attach` to allow viewing logs.
+9. Better deal with committing and pushing on `ship this`. Right now,
    rejected pushes would break everything.
-7. Create simple way to symlink credentials from an `application.yml` or
+10. Create simple way to symlink credentials from an `application.yml` or
    `.env` file.
-8. Fix messy output during setup and deploy. Also, deal with duplicate
+11. Fix messy output during setup and deploy. Also, deal with duplicate
    'Done.'s when a command is re-run.
-9. Speed everything up.
-10. Clean up the classes. Most things are doing *way* too much.
-11. Write specs!
+12. Speed everything up.
+13. Clean up the classes. Most things are doing *way* too much.
+14. Write specs!
 
 ## Contributing
 

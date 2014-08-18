@@ -1,3 +1,7 @@
+require 'yaml'
+require 'shipment/server/ssh_client'
+require 'shipment/project/repo'
+
 module Shipment
   class Slip
     def self.cast_off
@@ -5,11 +9,10 @@ module Shipment
     end
 
     def cast_off
-      if !File.exist?('.shipment')
-        puts "Please run `ship this` to prepare this application for deployment."
-      else
-        # This is where actual deployment will happen.
-      end
+      Shipment::Server::SSHClient.deploy(
+        repo: Shipment::Project::Repo.new,
+        ip_address: YAML.load(File.read('.shipment'))[:ip_address]
+      )
     end
   end
 end

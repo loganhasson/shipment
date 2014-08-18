@@ -9,10 +9,14 @@ module Shipment
     class SSHClient
       attr_reader :ip_address, :repo, :repo_url, :repo_name, :repo_user,
                   :repo_original_name, :gh_username, :gh_token, :db_user,
-                  :db_password, :db_name
+                  :db_password, :db_name, :secret_key_base
 
       def self.setup(repo:, ip_address:)
         new(repo, ip_address).setup
+      end
+
+      def self.deploy(repo:, ip_address:)
+        new(repo, ip_address).deploy
       end
 
       def initialize(repo, ip_address)
@@ -20,6 +24,7 @@ module Shipment
         @ip_address = ip_address
         @repo_url, @repo_name, @repo_user, @repo_original_name = repo.url, repo.name, repo.user, repo.original_name
         db_info = YAML.load(File.read('.shipment'))[:database]
+        @secret_key_base = YAML.load(File.read('.shipment'))[:secret]
         @db_user, @db_password, @db_name = db_info[:username], db_info[:password], db_info[:name]
       end
 
@@ -28,6 +33,38 @@ module Shipment
         puts "-----> ".green + "Preparing server..."
         setup_database_container
         setup_application_container
+      end
+
+      def deploy
+        puts "-----> ".green + "Deploying..."
+        kill_and_commit_old_server
+        start_new_server
+        puts "-----> ".green + "Done.\nYour application is accessable at: #{ip_address}:3000"
+
+      end
+
+      def kill_and_commit_old_server
+        puts "-----> ".green + "Stopping existing server..."
+        run_remote_command("if sudo docker ps -a | grep application > /dev/null; then docker kill application && docker commit application #{repo_user}/#{repo_name} && docker rm application; fi")
+      end
+
+      def start_new_server
+        puts "-----> ".green + "Restarting server..."
+        redis_command, sidekiq_command = parse_redis_and_sidekiq
+        run_remote_command("docker run -d -p 3000:3000 --name application -e SECRET_KEY_BASE=#{secret_key_base} #{repo_user}/#{repo_name} /bin/bash -c 'kill -9 $(pgrep -f sidekiq) > /dev/null 2>&1 && kill -9 $(pgrep -f redis-server) > /dev/null 2>&1 && kill -9 $(pgrep -f rails) > /dev/null 2>&1 && source /etc/profile.d/rvm.sh && rm -rf #{repo_name} && git clone #{repo_url} #{repo_name} && cd #{repo_name} && bundle install && RAILS_ENV=production bundle exec rake db:migrate#{redis_command}#{sidekiq_command} && rails server -p 3000 -e production'")
+      end
+
+      def parse_redis_and_sidekiq
+        # Code smell...
+        commands = []
+        if YAML.load(File.read('.shipment'))[:sidekiq]
+          commands << ' && redis-server /etc/redis/redis.conf'
+          commands << ' && bundle exec sidekiq -d -L log/sidekiq.log'
+        elsif YAML.load(File.read('.shipment'))[:redis]
+          commands << ' && redis-server /etc/redis/redis.conf'
+        end
+
+        return commands
       end
 
       def add_to_known_hosts
@@ -66,7 +103,7 @@ module Shipment
 
       def setup_database_user
         puts "-----> ".green + "Setting up database user..."
-        run_remote_command("docker run --name database -e USER=#{db_user} -e PASSWORD=#{db_password} -e NAME=#{db_name} loganhasson/postgres_image /bin/bash -c 'wget https://gist.githubusercontent.com/loganhasson/d8f8a91875087407ea6a/raw/3e0caf25154dc91e8679edc4ac11a3c45bad27ea/database_setup_shipment.sql && service postgresql start && psql --set \"user=$USER\" --set \"password=$PASSWORD\" --file=database_setup_shipment.sql && createdb -O $USER $NAME && service postgresql stop && rm database_setup_shipment.sql' && docker commit database #{repo_user}/#{repo_name}_db && docker rm database && docker rmi loganhasson/postgres_image")
+        run_remote_command("docker run --name database -e USER=#{db_user} -e PASSWORD=#{db_password} -e NAME=#{db_name} loganhasson/postgres_image /bin/bash -c 'wget https://gist.githubusercontent.com/loganhasson/d8f8a91875087407ea6a/raw/21bdbd6134e470397cef1ab0feeefdecee3fb6f0/database_setup_shipment.sql && service postgresql start && psql --set \"user=$USER\" --set \"password=$PASSWORD\" --file=database_setup_shipment.sql && createdb -O $USER $NAME && service postgresql stop && rm database_setup_shipment.sql && wget https://gist.githubusercontent.com/loganhasson/680f4b02c0f295dd7961/raw/18af1b0ccb2bb485dfc51e2fde169fce91393bca/update_postgres_config_shipment.sh && chmod +x update_postgres_config_shipment.sh && ./update_postgres_config_shipment.sh && rm update_postgres_config_shipment.sh' && docker commit database #{repo_user}/#{repo_name}_db && docker rm database && docker rmi loganhasson/postgres_image")
       end
 
       def start_database_container
@@ -109,7 +146,7 @@ module Shipment
 
       def migrate
         puts "-----> ".green + "Migrating database..."
-        run_remote_command("docker run --name migrate #{repo_user}/#{repo_name} /bin/bash -c 'source /etc/profile.d/rvm.sh && cd #{repo_name} && bundle exec rake db:migrate'")
+        run_remote_command("docker run --name migrate #{repo_user}/#{repo_name} /bin/bash -c 'source /etc/profile.d/rvm.sh && cd #{repo_name} && RAILS_ENV=production bundle exec rake db:migrate' && docker rm migrate")
       end
 
       #def save_docker_image

@@ -40,6 +40,14 @@ module Shipment
     server.
     LONGDESC
     def out
+      if !Shipment::CredentialsChecker.verify
+        Shipment::Mooring.lash
+      end
+
+      if !File.exist?('.shipment')
+        Shipment::Rigging.rig
+      end
+
       Shipment::Slip.cast_off
     end
   end
