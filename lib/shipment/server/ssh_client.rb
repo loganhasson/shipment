@@ -48,7 +48,11 @@ module Shipment
 
       def tail_logs
         puts "-----> ".green + "Accessing application logs..."
-        run_remote_command("tail -f log/production.log")
+        begin
+          run_remote_command("tail -f log/production.log")
+        rescue Interrupt
+          puts "\nDone."
+        end
       end
 
       def kill_and_commit_old_server
@@ -130,6 +134,7 @@ module Shipment
 
         puts "-----> ".green + "Done.\nReady to deploy."
         puts "Your server's IP Address is: #{ip_address}"
+        puts "Deploy with: ship out"
       end
 
       def pull_ruby_image
