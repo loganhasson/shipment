@@ -14,6 +14,8 @@ Easy deployment using Docker
 
     $ ship out  # Deploy application
 
+    $ ship logs # View logs
+
 ## What It Does
 
 1. Sets up a droplet on DigitalOcean with the proper SSH key
