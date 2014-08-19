@@ -51,7 +51,7 @@ module Shipment
       def start_new_server
         puts "-----> ".green + "Restarting server..."
         redis_command, sidekiq_command = parse_redis_and_sidekiq
-        run_remote_command("docker run -d -p 80:3000 --name application -e SECRET_KEY_BASE=#{secret_key_base} #{repo_user}/#{repo_name} /bin/bash -c 'kill -9 $(pgrep -f sidekiq) > /dev/null 2>&1 && kill -9 $(pgrep -f redis-server) > /dev/null 2>&1 && kill -9 $(pgrep -f rails) > /dev/null 2>&1 && source /etc/profile.d/rvm.sh && rm -rf #{repo_name} && git clone #{repo_url} #{repo_name} && cd #{repo_name} && bundle install && RAILS_ENV=production bundle exec rake db:migrate#{redis_command}#{sidekiq_command} && rails server -p 3000 -e production'")
+        run_remote_command("docker run -d -p 80:3000 --name application -e SECRET_KEY_BASE=#{secret_key_base} -v /root/log:/var/lib/docker/volumes/log #{repo_user}/#{repo_name} /bin/bash -c 'kill -9 $(pgrep -f sidekiq) > /dev/null 2>&1 && kill -9 $(pgrep -f redis-server) > /dev/null 2>&1 && kill -9 $(pgrep -f rails) > /dev/null 2>&1 && source /etc/profile.d/rvm.sh && rm -rf #{repo_name} && git clone #{repo_url} #{repo_name} && cd #{repo_name} && bundle install && RAILS_ENV=production bundle exec rake db:migrate#{redis_command}#{sidekiq_command} && rails server -p 3000 -e production'")
       end
 
       def parse_redis_and_sidekiq
