@@ -3,6 +3,7 @@ require 'shipment/mooring'
 require 'shipment/credentials_checker'
 require 'shipment/rigging'
 require 'shipment/slip'
+require 'shipment/manifest'
 
 module Shipment
 
@@ -49,6 +50,22 @@ module Shipment
       end
 
       Shipment::Slip.cast_off
+    end
+
+    desc "logs", "View logs"
+    long_desc <<-LONGDESC
+    `ship logs` will tail your application's production logs.
+    LONGDESC
+    def logs
+      if !Shipment::CredentialsChecker.verify
+        Shipment::Mooring.lash
+      end
+
+      if !File.exist?('.shipment')
+        Shipment::Rigging.rig
+      end
+
+      Shipment::Manifest.review
     end
   end
 

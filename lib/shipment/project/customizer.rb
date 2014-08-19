@@ -56,6 +56,8 @@ module Shipment
           end
 
           FileUtils.mv 'Gemfile.tmp', 'Gemfile'
+
+          system("bundle install > /dev/null")
         end
       end
 

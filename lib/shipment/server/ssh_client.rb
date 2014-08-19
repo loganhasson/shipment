@@ -19,6 +19,10 @@ module Shipment
         new(repo, ip_address).deploy
       end
 
+      def self.tail_logs(repo:, ip_address:)
+        new(repo, ip_address).tail_logs
+      end
+
       def initialize(repo, ip_address)
         @gh_username, @gh_token = Netrc.read["shipment.gh"]
         @ip_address = ip_address
@@ -40,7 +44,11 @@ module Shipment
         kill_and_commit_old_server
         start_new_server
         puts "-----> ".green + "Done.\nYour application is accessable at: #{ip_address}"
+      end
 
+      def tail_logs
+        puts "-----> ".green + "Accessing application logs..."
+        run_remote_command("tail -f log/production.log")
       end
 
       def kill_and_commit_old_server
@@ -146,7 +154,7 @@ module Shipment
 
       def migrate
         puts "-----> ".green + "Migrating database..."
-        run_remote_command("docker run --name migrate #{repo_user}/#{repo_name} /bin/bash -c 'source /etc/profile.d/rvm.sh && cd #{repo_name} && RAILS_ENV=production bundle exec rake db:migrate' && docker rm migrate")
+        run_remote_command("docker run --name migrate #{repo_user}/#{repo_name} /bin/bash -c 'source /etc/profile.d/rvm.sh && mkdir -p /var/lib/docker/volumes/log && touch /var/lib/docker/volumes/log/production.log && cd #{repo_name} && RAILS_ENV=production bundle exec rake db:migrate && cd ..' && docker commit migrate #{repo_user}/#{repo_name} && docker rm migrate")
       end
 
       #def save_docker_image
