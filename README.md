@@ -41,16 +41,6 @@ stdout on the server.
 
 ## Todo
 
-### For Logging Feature
-
-1. Check to see if project Gemfile has `rails_12factor`, remove it, and
-   rebundle.
-2. Add the following line inside `config/environments/production.rb`: `config.logger = Logger.new('/var/lib/docker/volumes/log/production.log')`
-3. Add `logs` command that runs `tail -f log/production.log` on the
-   server.
-
-### Other Stuff
-
 1. Only add `.shipmet` to `.gitignore` once, duh!
 2. Handle SSH authorization issues when re-setting up. DigitalOcean
    allows adding multiple keys with the same name. Need to delete
