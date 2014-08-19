@@ -41,6 +41,16 @@ stdout on the server.
 
 ## Todo
 
+### For Logging Feature
+
+1. Check to see if project Gemfile has `rails_12factor`, remove it, and
+   rebundle.
+2. Add the following line inside `config/environments/production.rb`: `config.logger = Logger.new('/var/lib/docker/volumes/log/production.log')`
+3. Add `logs` command that runs `tail -f log/production.log` on the
+   server.
+
+### Other Stuff
+
 1. Only add `.shipmet` to `.gitignore` once, duh!
 2. Handle SSH authorization issues when re-setting up. DigitalOcean
    allows adding multiple keys with the same name. Need to delete
@@ -56,17 +66,16 @@ command is run.)
    setups/deploys.
 7. Look into creating a base image that already includes ruby and
    postgres containers. (Requires support from DigitalOcean.)
-8. Look into using `docker attach` to allow viewing logs.
-9. Better deal with committing and pushing on `ship this`. Right now,
+8. Better deal with committing and pushing on `ship this`. Right now,
    rejected pushes would break everything.
-10. Create simple way to symlink credentials from an `application.yml` or
+9. Create simple way to symlink credentials from an `application.yml` or
    `.env` file.
-11. Fix messy output during setup and deploy. Also, deal with duplicate
+10. Fix messy output during setup and deploy. Also, deal with duplicate
    'Done.'s when a command is re-run.
-12. Speed everything up.
-13. Clean up the classes. Most things are doing *way* too much.
-14. Write specs!
-15. Add cleanup option to remove all system config.
+11. Speed everything up.
+12. Clean up the classes. Most things are doing *way* too much.
+13. Write specs!
+14. Add cleanup option to remove all system config.
 
 ## Contributing
 
