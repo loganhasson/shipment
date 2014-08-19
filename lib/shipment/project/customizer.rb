@@ -29,6 +29,8 @@ module Shipment
         update_db_info
         puts "-----> ".green + "Adding .shipment file to .gitignore..."
         add_shipment_to_gitignore
+        puts "-----> ".green + "Ensuring correct logging settings..."
+        fix_logging_settings
         puts "-----> ".green + "Committing and pushing changes..."
         commit_and_push
       end
@@ -38,6 +40,37 @@ module Shipment
         git.add(all: true)
         git.commit("Setup for deployment with shipment")
         git.push(git.remote("origin"))
+      end
+
+      def fix_logging_settings
+        remove_12_factor_gem
+        update_production_rb
+      end
+
+      def remove_12_factor_gem
+        if !!File.read('Gemfile').match(/rails_12factor/)
+          File.open('Gemfile.tmp', 'w') do |tmp|
+            File.readlines('Gemfile').each do |line|
+              tmp.write(line) unless line.match(/rails_12factor/)
+            end
+          end
+
+          FileUtils.mv 'Gemfile.tmp', 'Gemfile'
+        end
+      end
+
+      def update_production_rb
+        File.open('production.rb.tmp', 'w') do |tmp|
+          File.readlines('config/environments/production.rb').each do |line|
+            if line == 'end' || line == "end\n"
+              tmp.write("  config.logger = Logger.new('/var/lib/docker/volumes/log/production.log')\nend")
+            else
+              tmp.write(line)
+            end
+          end
+        end
+
+        FileUtils.mv 'production.rb.tmp', 'config/environments/production.rb'
       end
 
       def add_shipment_to_gitignore
