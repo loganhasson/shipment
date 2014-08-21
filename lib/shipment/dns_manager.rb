@@ -5,9 +5,9 @@ module Shipment
 
   class DNSManager
     attr_accessor :response, :status
-    attr_reader :connection, :ip_address, :node, :zone
+    attr_reader :connection, :ip_address, :node, :zone, :droplet_id
 
-    def initialize(ip_address:, node:, zone: 'shipmentapp.io')
+    def initialize(ip_address:, node:, droplet_id:, zone: 'shipmentapp.io')
       @ip_address = ip_address
       @node = node
       @zone = zone
@@ -25,6 +25,7 @@ module Shipment
         request.params[:ip_address] = ip_address
         request.params[:node] = node
         request.params[:zone] = zone
+        request.params[:droplet_id] = droplet_id
       end
 
       self.response = JSON.parse(response)
