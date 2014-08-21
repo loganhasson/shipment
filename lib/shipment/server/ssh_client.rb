@@ -53,6 +53,16 @@ module Shipment
         rescue Interrupt
           puts "\nDone."
         end
+
+        #string.each_line do |line|
+        #  if line.match(/^ *I/)
+        #    puts line.match(/(I.* INFO -- :)/)[1].green + " " + line.match(/INFO -- : (.*)/)[1]
+        #  elsif line.match(/^ *F/)
+        #    puts line.match(/(F.* FATAL -- :)/)[1].red + " " + line.match(/FATAL -- : (.*)/)[1]
+        #  else
+        #    puts line
+        #  end
+        #end
       end
 
       def kill_and_commit_old_server
@@ -63,7 +73,28 @@ module Shipment
       def start_new_server
         puts "-----> ".green + "Restarting server..."
         redis_command, sidekiq_command = parse_redis_and_sidekiq
-        run_remote_command("docker run -d -p 80:3000 --name application -e SECRET_KEY_BASE=#{secret_key_base} -v /root/log:/var/lib/docker/volumes/log #{repo_user}/#{repo_name} /bin/bash -c 'kill -9 $(pgrep -f sidekiq) > /dev/null 2>&1 && kill -9 $(pgrep -f redis-server) > /dev/null 2>&1 && kill -9 $(pgrep -f rails) > /dev/null 2>&1 && source /etc/profile.d/rvm.sh && rm -rf #{repo_name} && git clone #{repo_url} #{repo_name} && cd #{repo_name} && bundle install && RAILS_ENV=production bundle exec rake db:migrate#{redis_command}#{sidekiq_command} && rails server -p 3000 -e production'")
+        env_vars = handle_figaro
+        run_remote_command("docker run -d -p 80:3000 --name application -e SECRET_KEY_BASE=#{secret_key_base} #{env_vars}-v /root/log:/var/lib/docker/volumes/log #{repo_user}/#{repo_name} /bin/bash -c 'kill -9 $(pgrep -f sidekiq) > /dev/null 2>&1 && kill -9 $(pgrep -f redis-server) > /dev/null 2>&1 && kill -9 $(pgrep -f rails) > /dev/null 2>&1 && source /etc/profile.d/rvm.sh && rm -rf #{repo_name} && git clone #{repo_url} #{repo_name} && cd #{repo_name} && bundle install && RAILS_ENV=production bundle exec rake db:migrate#{redis_command}#{sidekiq_command} && rails server -p 3000 -e production'")
+      end
+
+      def handle_figaro
+        if figaro_installed?
+          parse_figaro_env_vars
+        end
+      end
+
+      def figaro_installed?
+        !!File.read('Gemfile').match(/figaro/) && File.exist?('config/application.yml')
+      end
+
+      def parse_figaro_env_vars
+        envs = YAML.load(File.read('config/application.yml'))
+
+        if envs
+          envs.map do |key, value|
+            "-e #{key}=#{value}"
+          end.join(' ') << ' '
+        end
       end
 
       def parse_redis_and_sidekiq
